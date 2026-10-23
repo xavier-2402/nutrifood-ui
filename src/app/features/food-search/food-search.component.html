@@ -1,0 +1,264 @@
+<section class="search-page">
+  <header class="search-hero">
+    <div class="search-hero__text">
+      <span class="search-hero__eyebrow">Catálogo nutricional</span>
+      <h1>Encuentra alimentos</h1>
+      <p>
+        Busca por nombre y filtra por categoría, clasificación o atributos
+        nutricionales.
+      </p>
+    </div>
+
+    <form class="search-bar" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+      <mat-form-field appearance="outline" class="search-bar__input">
+        <mat-label>Nombre del alimento</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          formControlName="search"
+          placeholder="Ej. manzana, arroz, pollo"
+          autocomplete="off"
+        />
+        <button
+          *ngIf="searchForm.get('search')?.value"
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Limpiar texto de búsqueda"
+          (click)="clearSearchText()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit" class="search-bar__button">
+        Buscar
+      </button>
+    </form>
+  </header>
+
+  <div class="search-layout">
+    <aside class="filters-panel">
+      <div class="filters-panel__header">
+        <div class="filters-panel__title">
+          <mat-icon>tune</mat-icon>
+          <h2>Filtros</h2>
+        </div>
+        <button
+          mat-button
+          color="primary"
+          type="button"
+          [disabled]="!hasActiveFilters"
+          (click)="clearFilters()"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      <div class="filters-form" [formGroup]="searchForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Categorías</mat-label>
+          <mat-select formControlName="categoryIds" multiple>
+            <mat-option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="!categories.length">Sin categorías disponibles</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Clasificaciones</mat-label>
+          <mat-select formControlName="classificationIds" multiple>
+            <mat-option
+              *ngFor="let classification of classifications"
+              [value]="classification.id"
+            >
+              {{ classification.name }}
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="!classifications.length">
+            Sin clasificaciones disponibles
+          </mat-hint>
+        </mat-form-field>
+
+        <div class="filters-group">
+          <div class="filters-group__header">
+            <div>
+              <span class="filters-group__label">Atributos</span>
+              <p class="filters-group__hint">Filtra por valores nutricionales.</p>
+            </div>
+            <button
+              mat-icon-button
+              color="primary"
+              type="button"
+              matTooltip="Agregar filtro de atributo"
+              aria-label="Agregar filtro de atributo"
+              (click)="addAttributeFilter()"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+
+          <p *ngIf="!filterRows.length" class="filters-empty">
+            Agrega un atributo para filtrar por sus valores.
+          </p>
+
+          <div
+            *ngFor="let row of filterRows; let index = index"
+            class="attribute-filter"
+            [formGroup]="row"
+          >
+            <div class="attribute-filter__header">
+              <span>Filtro {{ index + 1 }}</span>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Eliminar filtro"
+                aria-label="Eliminar filtro"
+                (click)="removeAttributeFilter(index)"
+              >
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Atributo</mat-label>
+              <mat-select formControlName="attributeId">
+                <mat-option *ngFor="let attribute of attributes" [value]="attribute.id">
+                  {{ attribute.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Operador</mat-label>
+              <mat-select formControlName="operator">
+                <mat-option
+                  *ngFor="let operator of comparisonOperators"
+                  [value]="operator.value"
+                >
+                  <span class="operator-symbol">{{ operator.symbol }}</span>
+                  {{ operator.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Valor</mat-label>
+              <input matInput type="number" formControlName="value" placeholder="0" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="filters-group">
+          <span class="filters-group__label">Ordenar por</span>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Atributo</mat-label>
+            <mat-select formControlName="sortAttributeId">
+              <mat-option [value]="null">Nombre del alimento</mat-option>
+              <mat-option *ngFor="let attribute of attributes" [value]="attribute.id">
+                {{ attribute.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            [class.filters-disabled]="searchForm.get('sortAttributeId')?.value === null"
+          >
+            <mat-label>Dirección</mat-label>
+            <mat-select formControlName="sortDescending">
+              <mat-option [value]="false">Ascendente</mat-option>
+              <mat-option [value]="true">Descendente</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </aside>
+
+    <section class="results-panel">
+      <div class="results-toolbar">
+        <div>
+          <h2>Resultados</h2>
+          <p *ngIf="!loading">{{ resultsLabel }}</p>
+          <p *ngIf="loading">Buscando alimentos...</p>
+        </div>
+      </div>
+
+      <div *ngIf="activeFilterLabels.length" class="active-filters">
+        <span class="active-filters__label">Filtros activos:</span>
+        <span *ngFor="let label of activeFilterLabels" class="filter-chip">
+          {{ label }}
+        </span>
+      </div>
+
+      <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
+      <div *ngIf="errorMessage" class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <div class="error-banner__content">
+          <strong>No se pudieron cargar los alimentos</strong>
+          <p>{{ errorMessage }}</p>
+        </div>
+        <button mat-stroked-button color="primary" type="button" (click)="onSearch()">
+          Reintentar
+        </button>
+      </div>
+
+      <div *ngIf="!loading && foods.length" class="food-grid">
+        <app-food-card
+          *ngFor="let food of foods; trackBy: trackByFoodId"
+          [food]="food"
+        ></app-food-card>
+      </div>
+
+      <div *ngIf="!loading && !foods.length && !errorMessage" class="results-empty">
+        <mat-icon>{{ hasActiveFilters ? 'search_off' : 'restaurant_menu' }}</mat-icon>
+        <h3>
+          {{
+            hasActiveFilters
+              ? 'No encontramos alimentos con esos filtros'
+              : 'Empieza buscando un alimento'
+          }}
+        </h3>
+        <p>
+          {{
+            hasActiveFilters
+              ? 'Prueba a ampliar los filtros o cambiar el texto de búsqueda.'
+              : 'Usa el buscador o los filtros para encontrar alimentos.'
+          }}
+        </p>
+        <button
+          *ngIf="hasActiveFilters"
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="clearFilters()"
+        >
+          Limpiar filtros
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="skeleton-grid">
+        <div *ngFor="let item of skeletonItems" class="skeleton-card">
+          <span class="skeleton-card__media"></span>
+          <span class="skeleton-card__line skeleton-card__line--title"></span>
+          <span class="skeleton-card__line"></span>
+          <span class="skeleton-card__line skeleton-card__line--short"></span>
+        </div>
+      </div>
+
+      <mat-paginator
+        *ngIf="totalItems > 0 && !loading"
+        class="results-paginator"
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [pageIndex]="page - 1"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      ></mat-paginator>
+    </section>
+  </div>
+</section>

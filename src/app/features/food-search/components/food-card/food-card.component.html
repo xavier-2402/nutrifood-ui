@@ -1,0 +1,60 @@
+<article class="food-card">
+  <div class="food-card__media">
+    <img
+      *ngIf="imageSource && !imageError"
+      [src]="imageSource"
+      [alt]="food.name"
+      (error)="imageError = true"
+    />
+    <div *ngIf="!imageSource || imageError" class="food-card__placeholder">
+      {{ initials }}
+    </div>
+    <span class="food-card__code">{{ food.code }}</span>
+  </div>
+
+  <div class="food-card__body">
+    <h3 class="food-card__title">{{ food.name }}</h3>
+
+    <div class="food-card__tags">
+      <span class="food-card__tag food-card__tag--category">
+        {{ food.foodCategoryName || 'Sin categoría' }}
+      </span>
+      <span
+        *ngIf="food.foodClassificationName"
+        class="food-card__tag food-card__tag--classification"
+      >
+        {{ food.foodClassificationName }}
+      </span>
+    </div>
+
+    <p *ngIf="food.description" class="food-card__description">
+      {{ food.description }}
+    </p>
+    <p *ngIf="!food.description" class="food-card__description food-card__description--muted">
+      Sin descripción disponible.
+    </p>
+
+    <div *ngIf="food.attributes.length" class="food-card__attributes">
+      <div
+        *ngFor="let attribute of visibleAttributes"
+        class="food-card__attribute"
+      >
+        <span class="food-card__attribute-name">{{ attribute.attributeName }}</span>
+        <strong class="food-card__attribute-value">
+          {{ attribute.value | number: '1.0-2' }}
+          <span *ngIf="attribute.measureUnitAbbreviation">
+            {{ attribute.measureUnitAbbreviation }}
+          </span>
+        </strong>
+      </div>
+
+      <div *ngIf="hiddenAttributesCount" class="food-card__attribute food-card__attribute--more">
+        +{{ hiddenAttributesCount }} atributos más
+      </div>
+    </div>
+
+    <p *ngIf="!food.attributes.length" class="food-card__description food-card__description--muted">
+      Sin atributos registrados.
+    </p>
+  </div>
+</article>
