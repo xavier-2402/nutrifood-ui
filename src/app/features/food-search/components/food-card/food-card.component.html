@@ -9,7 +9,7 @@
     <div *ngIf="!imageSource || imageError" class="food-card__placeholder">
       {{ initials }}
     </div>
-    <span class="food-card__code">{{ food.code }}</span>
+    <!-- <span class="food-card__code">{{ food.code }}</span> -->
   </div>
 
   <div class="food-card__body">
@@ -48,9 +48,9 @@
         </strong>
       </div>
 
-      <div *ngIf="hiddenAttributesCount" class="food-card__attribute food-card__attribute--more">
+      <!-- <div *ngIf="hiddenAttributesCount" class="food-card__attribute food-card__attribute--more">
         +{{ hiddenAttributesCount }} atributos más
-      </div>
+      </div> -->
     </div>
 
     <p *ngIf="!food.attributes.length" class="food-card__description food-card__description--muted">

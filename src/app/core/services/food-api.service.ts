@@ -16,7 +16,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class FoodApiService {
-  private readonly baseUrl = 'https://localhost:44382/api';
+  private readonly baseUrl = 'http://localhost:5158/api';
 
   constructor(private readonly http: HttpClient) {}
 
