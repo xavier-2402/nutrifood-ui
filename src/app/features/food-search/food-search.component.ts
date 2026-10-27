@@ -17,6 +17,9 @@ import {
   FoodSearchRequest,
 } from '../../core/models/food-search.model';
 import { FoodApiService } from '../../core/services/food-api.service';
+import { ClassificationService } from 'src/app/core/services/classification.service';
+import { AttributeService } from 'src/app/core/services/attribute.service';
+import { CategoryService } from 'src/app/core/services/category.service';
 
 @Component({
   selector: 'app-food-search',
@@ -49,7 +52,10 @@ export class FoodSearchComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly foodApi: FoodApiService
+    private readonly foodApi: FoodApiService,
+    private readonly classificationService: ClassificationService,
+    private readonly attributeService: AttributeService,
+    private readonly categoryService: CategoryService
   ) {}
 
   ngOnInit(): void {
@@ -254,13 +260,13 @@ export class FoodSearchComponent implements OnInit, OnDestroy {
 
   private loadCatalogData(): void {
     forkJoin({
-      categories: this.foodApi
+      categories: this.categoryService
         .getCategories()
         .pipe(catchError(() => of([] as FoodCategory[]))),
-      classifications: this.foodApi
+      classifications: this.classificationService
         .getClassifications()
         .pipe(catchError(() => of([] as FoodClassification[]))),
-      attributes: this.foodApi
+      attributes: this.attributeService
         .getAttributes()
         .pipe(catchError(() => of([] as FoodAttribute[]))),
     })
